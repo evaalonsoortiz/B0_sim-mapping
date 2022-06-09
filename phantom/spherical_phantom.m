@@ -36,7 +36,6 @@ spherical_sus_dist = Spherical(view_field , [1 1 1], 5, susceptibilities);
 spherical_sus_dist.save(sus_path);
 % Plot
 figure(1);
-imagesc(spherical_sus_dist.volume(:,:,64)); colorbar; title('susceptibility distribution')
 imagesc(spherical_sus_dist.volume(:,:,numCrossSection)); colorbar; title('susceptibility distribution')
 
 
@@ -124,7 +123,6 @@ h2.XLabel.Visible = 'on';
 h2.YLabel.Visible = 'on';
 ylabel(h2, 'yaxis');
 xlabel(h2, 'yaxis');
-title(h2, sprintf('Spherical Phantom (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, flip_angle, list_TE(2) - list_TE(1)));
 sgtitle(h2, sprintf('Spherical Phantom - B0 measured maps (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, flip_angle, list_TE(2) - list_TE(1)));
 c2 = colorbar(h2, 'Position', [0.93 0.168 0.022 0.7]);
 caxis(h2, colorLim);
@@ -135,6 +133,7 @@ h3.XLabel.Visible = 'on';
 h3.YLabel.Visible = 'on';
 ylabel(h3, 'yaxis');
 xlabel(h3, 'yaxis');
-title(h3, sprintf('Spherical Phantom (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, flip_angle, list_TE(2) - list_TE(1)));
+sgtitle(h3, sprintf('Spherical Phantom - difference between true dBz and measures maps (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, flip_angle, list_TE(2) - list_TE(1)));
 c3 = colorbar(h3, 'Position', [0.93 0.168 0.022 0.7]);
 caxis(h3, colorLim);
+
