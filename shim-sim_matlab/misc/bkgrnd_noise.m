@@ -1,6 +1,6 @@
 function sigma = bkgrnd_noise(dataVol)
 % Calculate background noise for each slice of an image by computing the 
-% average stadard deviation of the signal in four (5 x 5 voxel) corners of 
+% average standard deviation of the signal in four (5 x 5 voxel) corners of 
 % an input image (which would presmulably only contain noise) across all 
 % echoes
 %
