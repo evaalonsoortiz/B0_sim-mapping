@@ -38,32 +38,32 @@ save_nii(nii_vol, ['dualechoB0_ppm_zubal' '.nii']);
 nii_vol = make_nii(multi_echo_b0_ppm);
 save_nii(nii_vol, ['multiechoB0_ppm_zubal' '.nii']);
 
-% % plot results
-% figure
-% imagesc(squeeze(multi_echo_b0_ppm(:,:,64)))
-% colorbar
-% title('multi-echo fit: b0 (ppm)')
-% 
-% figure
-% imagesc(squeeze(dual_echo_b0_ppm(:,:,64)))
-% colorbar
-% title('dual-echo fit: b0 (ppm)')
-% 
-% figure
-% imagesc(squeeze(1e6.*real(zubal_dBz.volume(:,:,64))))
-% colorbar
-% title('Fourier-based field estimation for the modified Zubal phantom: b0 (ppm)')
-% 
-% % calc diff between dual-echo and multi-echo
-% diff_dualecho = (dual_echo_b0_ppm-1e6.*real(zubal_dBz.volume));
-% figure; imagesc(squeeze(diff_dualecho(:,:,64))); colorbar; title('dual echo - true dBz');
-% 
-% diff_multiecho = (multi_echo_b0_ppm-1e6.*real(zubal_dBz.volume));
-% figure; imagesc(squeeze(diff_multiecho(:,:,64))); colorbar; title('multi echo - true dBz');
+% plot results
+figure
+imagesc(squeeze(multi_echo_b0_ppm(:,:,64)))
+colorbar
+title('multi-echo fit: b0 (ppm)')
+
+figure
+imagesc(squeeze(dual_echo_b0_ppm(:,:,64)))
+colorbar
+title('dual-echo fit: b0 (ppm)')
+
+figure
+imagesc(squeeze(1e6.*real(zubal_dBz.volume(:,:,64))))
+colorbar
+title('Fourier-based field estimation for the modified Zubal phantom: b0 (ppm)')
+
+% calc diff between dual-echo and multi-echo
+diff_dualecho = (dual_echo_b0_ppm-1e6.*real(zubal_dBz.volume));
+figure; imagesc(squeeze(diff_dualecho(:,:,64))); colorbar; title('dual echo - true dBz');
+
+diff_multiecho = (multi_echo_b0_ppm-1e6.*real(zubal_dBz.volume));
+figure; imagesc(squeeze(diff_multiecho(:,:,64))); colorbar; title('multi echo - true dBz');
 
 
+% %
 % 
-
 % B0_hz = 500;
 % TE = [0.0015 0.0025];
 % % a = NumericalModel('Shepp-Logan2d', 256);
