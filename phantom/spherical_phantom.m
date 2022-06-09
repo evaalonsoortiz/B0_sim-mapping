@@ -30,10 +30,8 @@ sectionDiff        = cell(1, length(list_SNR) * 2);
 
 %% Generate phantom and measures
 % generate a spherical susceptibility distribution 
-spherical_sus_dist = Spherical( [128 128 128], [1 1 1], 5, [0.36e-6 -8.842e-6]);
 spherical_sus_dist = Spherical(view_field , [1 1 1], 5, susceptibilities);
 % save as nifti
-spherical_sus_dist.save('spherical_R5mm_airMineralOil_ChiDist.nii');
 spherical_sus_dist.save(sus_path);
 % Plot
 figure(1);
@@ -59,11 +57,6 @@ for i = 1:length(list_SNR)
     phase = spherical_vol.getPhase;
     compl_vol = magn.*exp(1i*phase);
 
-% simulate T2* decay for a cylinder of air surrounded by mineral oil with a
-% deltaB0 found in an external file
-spherical_vol = NumericalModel('Spherical3d',128,1,5,'air', 'silicone_oil');
-spherical_vol.generate_deltaB0('load_external', 'Bdz_spherical_R5mm_airSiliconeOil_ChiDist.nii');
-spherical_vol.simulate_measurement(15, [0.001 0.002 0.003 0.004 0.005 0.006], 100);
     % calculate the deltaB0 map from the magnitude and phase data
     [dual_echo_delf] = +imutils.b0.dual_echo(compl_vol(:,:,:,1:2), list_TE(1:2));
     [multi_echo_delf] = +imutils.b0.multiecho_linfit(compl_vol, list_TE);
@@ -72,14 +65,7 @@ spherical_vol.simulate_measurement(15, [0.001 0.002 0.003 0.004 0.005 0.006], 10
     dual_echo_b0_ppm = 1e6*(dual_echo_delf/3)*(1/42.58e6);
     multi_echo_b0_ppm = 1e6*(multi_echo_delf/3)*(1/42.58e6);
 
-% get magnitude and phase data
-magn = spherical_vol.getMagnitude;
-phase = spherical_vol.getPhase;
-compl_vol = magn.*exp(1i*phase);
 
-% calculate the deltaB0 map from the magnitude and phase data
-[dual_echo_delf] = +imutils.b0.dual_echo(compl_vol(:,:,:,1:2), [0.001 0.002]);
-[multi_echo_delf] = +imutils.b0.multiecho_linfit(compl_vol, [0.001 0.002 0.003 0.004 0.005 0.006]); 
     % save b0 maps
     nii_vol = make_nii(dual_echo_b0_ppm);
     save_nii(nii_vol, [b0ppm_dual_path sprintf('_SNR%u', list_SNR(i)) '.nii']);
@@ -89,21 +75,14 @@ compl_vol = magn.*exp(1i*phase);
     
     %% store results
 
-dual_echo_b0_ppm = 1e6*(dual_echo_delf/3)*(1/42.58e6);
-multi_echo_b0_ppm = 1e6*(multi_echo_delf/3)*(1/42.58e6);
     sectionMultiDual{i} = squeeze(multi_echo_b0_ppm(:,:,numCrossSection));
     sectionMultiDual{i + length(list_SNR)} = squeeze(dual_echo_b0_ppm(:,:,numCrossSection));
 
-% save b0 maps
-nii_vol = make_nii(dual_echo_b0_ppm);
-save_nii(nii_vol, ['dualechoB0_ppm_spherical' '.nii']);
     diff_multiecho = (multi_echo_b0_ppm-1e6.*real(spherical_dBz.volume));
     sectionDiff{i}  = squeeze(diff_multiecho(:,:,numCrossSection));
     diff_dualecho = (dual_echo_b0_ppm-1e6.*real(spherical_dBz.volume));
     sectionDiff{i + length(list_SNR)} = squeeze(diff_dualecho(:,:,numCrossSection));
 
-nii_vol = make_nii(multi_echo_b0_ppm);
-save_nii(nii_vol, ['multiechoB0_ppm_spherical' '.nii']);
 
 toc
 end
@@ -130,7 +109,8 @@ diff_dualecho = (dual_echo_b0_ppm-1e6.*real(spherical_dBz.volume));
 figure; imagesc(squeeze(diff_dualecho(:,:,64))); colorbar; title('dual echo - true dBz');
 
 diff_multiecho = (multi_echo_b0_ppm-1e6.*real(spherical_dBz.volume));
-figure; imagesc(squeeze(diff_multiecho(:,:,64))); colorbar; title('multi echo - true dBz');=======
+figure; imagesc(squeeze(diff_multiecho(:,:,64))); colorbar; title('multi echo - true dBz');
+=======
 %% plot
 % plot results
 
