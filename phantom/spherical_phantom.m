@@ -1,6 +1,7 @@
 
 %% Spherical phantom
 clearvars;
+% Create a phantom for the spherical model
 
 %% Parameters
 % Phantom parameters
@@ -36,12 +37,16 @@ spherical_sus_dist.save(sus_path);
 % Plot
 figure(1);
 imagesc(spherical_sus_dist.volume(:,:,64)); colorbar; title('susceptibility distribution')
+imagesc(spherical_sus_dist.volume(:,:,numCrossSection)); colorbar; title('susceptibility distribution')
 
 
 % compute deltaB0 for the simulated susceptibility distribution using:
 spherical_dBz = FBFest(spherical_sus_dist.volume, spherical_sus_dist.image_res, spherical_sus_dist.matrix);
 % save as nifti
 spherical_dBz.save(bdz_path);
+
+figure(4);
+imagesc(squeeze(1e6.*real(spherical_dBz.volume(:,:,numCrossSection)))); colorbar; title('true deltaB0 map')
 
 for i = 1:length(list_SNR)
     fprintf('Calculate SNR %u...\n', list_SNR(i)); tic
@@ -120,6 +125,7 @@ h2.YLabel.Visible = 'on';
 ylabel(h2, 'yaxis');
 xlabel(h2, 'yaxis');
 title(h2, sprintf('Spherical Phantom (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, flip_angle, list_TE(2) - list_TE(1)));
+sgtitle(h2, sprintf('Spherical Phantom - B0 measured maps (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, flip_angle, list_TE(2) - list_TE(1)));
 c2 = colorbar(h2, 'Position', [0.93 0.168 0.022 0.7]);
 caxis(h2, colorLim);
 
