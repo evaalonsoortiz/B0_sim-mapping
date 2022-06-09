@@ -78,7 +78,7 @@ multi_echo_b0_ppm = 1e6*(multi_echo_delf/3)*(1/42.58e6);
 % diff_multiecho = (multi_echo_b0_ppm-1e6.*real(cylindrical_dBz.volume));
 % figure; imagesc(squeeze(diff_multiecho(:,:,64))); colorbar; title('multi echo - true dBz');
 
-% 
+
 % dual_img = [dual_img dual_echo_b0_ppm(:,:,64) ];
 % multi_img = [multi_img multi_echo_b0_ppm(:,:,64)];
 % 
