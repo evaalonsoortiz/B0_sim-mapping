@@ -1,13 +1,4 @@
 % Spherical phantom
-
-% generate a spherical susceptibility distribution 
-spherical_sus_dist = Spherical( [128 128 128], [1 1 1], 5, [0.36e-6 -8.842e-6]);
-% save as nifti
-spherical_sus_dist.save('spherical_R5mm_airMineralOil_ChiDist.nii');
-
-
-% compute deltaB0 for the simulated susceptibility distribution using:
-spherical_dBz = FBFest(spherical_sus_dist.volume,
 %% Spherical phantom
 clearvars;
 
