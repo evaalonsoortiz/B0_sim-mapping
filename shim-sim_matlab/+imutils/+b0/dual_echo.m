@@ -31,12 +31,46 @@ ph_data = angle(complVol);
 Z1(:,:,:) = mag_data(:,:,:,1).*exp(1i*ph_data(:,:,:,1));
 Z2(:,:,:) = mag_data(:,:,:,2).*exp(1i*ph_data(:,:,:,2));
 
+% pre-allocate memory for variables
+dPhi = zeros(size(ph_data,1),size(ph_data,2),size(ph_data,3));
+% generate a mask 
+sigma = bkgrnd_noise(mag_data);
+mask = threshold_masking(mag_data, sigma);
+
 switch handedness
     case 'left'
-        dPhi(:,:,:) = atan2(imag(Z2(:,:,:).*conj(Z1(:,:,:))),real(Z2(:,:,:).*conj(Z1(:,:,:))));
+        for i=1:size(ph_data,1)
+            for j=1:size(ph_data,2)
+                for k = 1:size(ph_data,3)
+                    if (mask(i,j,k) == 0)
+                        dPhi(i,j,k) = 0;
+                    else
+                        dPhi(i,j,k) = atan2(imag(Z2(i,j,k).*conj(Z1(i,j,k))),real(Z2(i,j,k).*conj(Z1(i,j,k))));
+                    end
+                end
+            end
+        end
+
     case 'right'
-        dPhi(:,:,:) = atan2(imag(Z1(:,:,:).*conj(Z2(:,:,:))),real(Z1(:,:,:).*conj(Z2(:,:,:))));
+        for i=1:size(ph_data,1)
+            for j=1:size(ph_data,2)
+                for k = 1:size(ph_data,3)
+                    if (mask(i,j,k) == 0)
+                        dPhi(i,j,k) = 0;
+                    else
+                        dPhi(i,j,k) = atan2(imag(Z1(i,j,k).*conj(Z2(i,j,k))),real(Z1(i,j,k).*conj(Z2(i,j,k))));
+                    end
+                end
+            end
+        end
 end
+
+% switch handedness
+%     case 'left'
+%         dPhi(:,:,:) = atan2(imag(Z2(:,:,:).*conj(Z1(:,:,:))),real(Z2(:,:,:).*conj(Z1(:,:,:))));
+%     case 'right'
+%         dPhi(:,:,:) = atan2(imag(Z1(:,:,:).*conj(Z2(:,:,:))),real(Z1(:,:,:).*conj(Z2(:,:,:))));
+% end
 
 b0(:,:,:) = dPhi(:,:,:)./(delt(2)-delt(1)); % [rad*Hz]
 b0 = b0/(2*pi); % [Hz]
