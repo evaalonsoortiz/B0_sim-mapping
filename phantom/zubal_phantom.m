@@ -16,12 +16,13 @@ real_mag = real(zubal_dBz.volume);
 %% for loop initialisation
 list_SNR = linspace(0,300,21); % get different SNR
 % initialisation of the error vector
-mean_abs_error_dual = [];
-mean_abs_error_multi = [];
+mean_rel_error_dual = [];
+mean_rel_error_multi = [];
 
 for k = 1 : length(list_SNR)
     
-    fprintf('Calculating SNR %u...\n', list_SNR(k)); tic
+fprintf('Calculating SNR %u...\n', list_SNR(k)); tic
+
 % simulate T2* decay for a modified Zubal phantom with a
 % deltaB0 found in an external file
 zubal_vol = NumericalModel('Zubal','/Users/mac/Documents/MATLAB/zubal_EAO.nii');
@@ -50,12 +51,12 @@ nii_vol = make_nii(multi_echo_b0_ppm);
 save_nii(nii_vol, ['multiechoB0_ppm_zubal' '.nii']);
 
 
-%% calculate the error
+%% calculate the relative error
 
 [err_dual] = zubal_err_fct('zubal_mask.nii.gz', dual_echo_b0_ppm, zubal_dBz.volume, 'sagital', 128);
-mean_abs_error_dual = [mean_abs_error_dual, err_dual];
+mean_rel_error_dual = [mean_rel_error_dual, err_dual];
 [err_multi] = zubal_err_fct('zubal_mask.nii.gz', multi_echo_b0_ppm, zubal_dBz.volume, 'sagital', 128);
-mean_abs_error_multi = [mean_abs_error_multi, err_multi];
+mean_rel_error_multi = [mean_rel_error_multi, err_multi];
 
 toc
 end
@@ -64,17 +65,15 @@ end
 
 figure;
 hold on
-plot(list_SNR, mean_abs_error_dual, 'Color', 'b', 'Marker', 'o', 'LineWidth',1.5, 'LineStyle','-')
-plot(list_SNR, mean_abs_error_multi, 'Color', 'r', 'Marker', 'o', 'LineWidth',1.5, 'LineStyle','-')
+plot(list_SNR, mean_rel_error_dual, 'Color', 'b', 'Marker', 'o', 'LineWidth',1.5, 'LineStyle','-')
+plot(list_SNR, mean_rel_error_multi, 'Color', 'r', 'Marker', 'o', 'LineWidth',1.5, 'LineStyle','-')
 legend1 = legend('dual-echo', 'multi-echo');
 set(legend1,'Location','best');
-title({'SNR variation (second test)'},{'Mean absolute error from 0 to 300 with increment of 15'})
+title({'SNR variation (New test2)'},{'Mean relative error from 0 to 300 with increment of 15'})
 xlabel('SNR')
 ylabel('error')
 grid on
 hold off
-
-
 
 
 % % plot results
@@ -101,7 +100,7 @@ hold off
 % figure; imagesc(squeeze(diff_multiecho(:,:,64))); colorbar; title('multi echo - true dBz');
 
 
-% %
+% 
 % 
 % B0_hz = 500;
 % TE = [0.0015 0.0025];
@@ -121,3 +120,5 @@ hold off
 % B0_meas = (phaseTE2(:, :) - phaseTE1(:, :))/(TE(2) - TE(1));
 % B0_meas_hz = B0_meas/(2*pi);
 % figure; imagesc(B0_meas_hz), title('B0_{z}');
+
+
