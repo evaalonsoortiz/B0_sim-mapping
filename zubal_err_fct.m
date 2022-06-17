@@ -1,61 +1,36 @@
-function [mean_rel_error_method] = zubal_err_fct(mask_file_name, method, mag_field_sim, plane, cross_sect)
+function [percent_diff] = zubal_err_fct(mask_fname, meas_b0_map_fname, sim_b0_map_fname)
 %
-% zubal_err_fct computes the mean relative error for a certain mask in the zubal
-% phantom. First, the mask is applied on the true magnetic field and on the
-% method you chose. Then, we substract the B0 map created from your method
-% and the true magnetic field and finally we divide this operation with 
-% the true magnetic (element by element). If you have a 3D data set 
-% (256x256x128), you have to choose a plane in the matrix, the first 
-% dimension is for the sagital plane, the second dimension is for the
-% coronal plane and the third dimension is for the axial plane. You'll now
-% have a 2D data set containing the relative error for each element of your
-% matrix. We calculate the mean value of the 2D data set and the output 
-% is the mean relative error for a specify plane and cross section.
+% zubal_err_fct computes the percent difference between two images (meas_b0_map and sim_b0_map) for a certain mask. 
+% The percenct difference between meas_b0_map and sim_b0_map is calculated pixel-wise within the ROI
 %
 % _SYNTAX_
 % 
-% [mean_rel_error_method] = err_fct(mask_file_name, method, mag_field_sim, plane, cross_sect)
+% [mean_rel_error_method] = zubal_err_fct(mask, meas_b0_map, sim_b0_map)
 %
 % _DESCRIPTION_
 %
 % _INPUT ARGUMENTS_
 %
-%    mask_file_name
+%    mask
 %      file name for your mask, must be a string
 %
-%    method
-%      real 3D data set which represent the field map of a particular method.
+%    meas_b0_map
+%      measured 3D data set which represent the field map of a particular method.
 %      (dual echo or multi echo)
 %
-%    mag_field_sim
-%      complex 4D data set for the true magnetic field 
-%
-%    plane
-%      choose the axis/plane you want 
-%      'sagital' 
-%      'coronal'
-%      'axial'
-%
-%    cross_sect
-%      choose where you want to cut in the plane
+%    sim_b0_map
+%      complex 4D data set for the simulated/true magnetic field 
 %
 %
 % _OUTPUTS_
 %
-%    mean_rel_error_method 
-%      mean relative error for a specify plane and cross section
-% 
-%
-% _EXAMPLE_
-% 
-%  [err_dual] = zubal_err_fct('zubal_mask.nii.gz', dual_echo_b0_ppm, zubal_dBz.volume, 'sagital', 128);
+%    percent_diff 
 %  
+%
 
-
-% get the error in a particular region for the zubal phantom (sinuses)
-mask = niftiread(mask_file_name);  % mask in the sinuses
+mask = niftiread(mask_fname);  % load mask 
 [dim1, dim2 ,dim3] = size(mask);
-mask_dBz = mask .* 1e6 .* real(mag_field_sim); % ROI for the real magnetic field
+mask_dBz = mask .* 1e6 .* real(sim_b0_map_fname); % verify units of mag_field_sim and justify conversion
 mask_method = mask .* method; % ROI for dual or multi echo
 
 % calculating the efficacity of both methods using the relative error
