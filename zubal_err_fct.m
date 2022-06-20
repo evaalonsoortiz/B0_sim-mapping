@@ -1,7 +1,7 @@
-function [percent_diff] = zubal_err_fct(mask_fname, meas_b0_map_fname, sim_b0_map_fname)
+function [mean_percent_diff] = zubal_err_fct(mask_fname, meas_b0_map_fname, sim_b0_map_fname, varargin)
 %
 % zubal_err_fct computes the percent difference between two images (meas_b0_map and sim_b0_map) for a certain mask. 
-% The percenct difference between meas_b0_map and sim_b0_map is calculated pixel-wise within the ROI
+% The percent difference between meas_b0_map and sim_b0_map is calculated pixel-wise within the ROI
 %
 % _SYNTAX_
 % 
@@ -24,69 +24,55 @@ function [percent_diff] = zubal_err_fct(mask_fname, meas_b0_map_fname, sim_b0_ma
 %
 % _OUTPUTS_
 %
-%    percent_diff 
+%    mean_percent_diff 
 %  
-%
-
+% 
+ 
 mask = niftiread(mask_fname);  % load mask 
-[dim1, dim2 ,dim3] = size(mask);
+mask(mask==0) = NaN; % replace all zeros by NaN
+[h_mask, w_mask ,s_mask] = size(mask);
+[h_sim, w_sim, s_sim] = size(sim_b0_map_fname);
 mask_dBz = mask .* 1e6 .* real(sim_b0_map_fname); % verify units of mag_field_sim and justify conversion
-mask_method = mask .* method; % ROI for dual or multi echo
-
-% calculating the efficacity of both methods using the relative error
-switch plane
+mask_method = mask .* meas_b0_map_fname; % ROI for dual or multi echo
+ 
+% sim_voxels = h_sim * w_sim * s_sim;
+% mask_voxels = h_mask * w_mask * s_mask;
+% mask_voxels ~= sim_voxels;
+ 
+% check that mask and data_vol are the same dimensions
+ if h_mask ~= h_sim && w_mask ~= w_sim && s_mask ~= s_sim
+    error(sprintf('\n Mask file dimensions do not match simulated B_0 data file. \n')); 
+end
+ 
+% calculating the relative error (3D data set)
+percent_diff = abs((mask_dBz - mask_method)./mask_dBz)*100;  
+ 
+% calculating the mean for the whole data set
+%mean_mask = nanmean(rel_error_method, 'all');
+ 
+switch varargin{1}
     
-    case 'sagital'
+    case 'meanvalue'
         
-        for i = 1 : dim2
-            for j = 1 : dim3
-                if mask_dBz(cross_sect,i,j)==0
-                    rel_error_method(i,j) = 0;
-                else
-                    rel_error_method(i,j) = abs((mask_dBz(cross_sect,i,j) - mask_method(cross_sect,i,j))/...
-                                            mask_dBz(cross_sect,i,j)); % relative error  
-                end
-            end
-        end
-        mean_rel_error_method = sum(rel_error_method(:,:), 'all')/nnz(mask(cross_sect,:,:));
+        mean_percent_diff = nanmean(percent_diff, 'all');
+ 
+    case 'niftifile'
         
-    case 'coronal'
+        nii_vol = make_nii(percent_diff);
+        save_nii(nii_vol, [varargin{2} '.nii']);
         
-        for i = 1 : dim1
-            for j = 1 : dim3
-                if mask_dBz(i,cross_sect,j)==0
-                    rel_error_method(i,j) = 0;
-                else
-                    rel_error_method(i,j) = abs((mask_dBz(i,cross_sect,j) - mask_method(i,cross_sect,j))/...
-                                            mask_dBz(i,cross_sect,j)); % relative error 
-                end
-            end
-        end
-        mean_rel_error_method = sum(rel_error_method(:,:), 'all')/nnz(mask(:,cross_sect,:));
+    case 'meanvalue_and_niftifile' 
         
-    case 'axial'
-        
-        for i = 1 : dim1
-            for j = 1 : dim2
-                if mask_dBz(i,j,cross_sect)==0
-                rel_error_method(i,j) = 0;
-                else
-                rel_error_method(i,j) = abs((mask_dBz(i,j,cross_sect) - mask_method(i,j,cross_sect))/...
-                                        mask_dBz(i,j,cross_sect)); % relative error 
-                end
-            end
-        end
-        mean_rel_error_method = sum(rel_error_method(:,:), 'all')/nnz(mask(:,:,cross_sect));
-    
+        nii_vol = make_nii(percent_diff);
+        save_nii(nii_vol, [varargin{2} '.nii']);
+        mean_percent_diff = nanmean(percent_diff, 'all');
+ 
     otherwise
         
-        error_message = [ 'this plane doesn''t exist.\n',...
-                          'The options are : \n',...
-                          'sagital\n',...
-                          'coronal\n',...
-                          'axial\n'];
+        error_message = 'error in the number of input \n';
         error( 'u:stuffed:it' , error_message );
         
 end
 end
+ 
 
