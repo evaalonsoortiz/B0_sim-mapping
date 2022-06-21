@@ -5,26 +5,34 @@ function [mean_percent_diff] = zubal_err_fct(mask_fname, meas_b0_map_fname, sim_
 %
 % _SYNTAX_
 % 
-% [mean_rel_error_method] = zubal_err_fct(mask, meas_b0_map, sim_b0_map)
+% [mean_percent_diff] = zubal_err_fct(mask_fname, meas_b0_map_fname, sim_b0_map_fname, varargin)
 %
 % _DESCRIPTION_
 %
 % _INPUT ARGUMENTS_
 %
-%    mask
+%    mask_fname
 %      file name for your mask, must be a string
 %
-%    meas_b0_map
+%    meas_b0_map_fname
 %      measured 3D data set which represent the field map of a particular method.
 %      (dual echo or multi echo)
 %
-%    sim_b0_map
+%    sim_b0_map_fname
 %      complex 4D data set for the simulated/true magnetic field 
 %
+%    varargin
+%      you can choose between 'meanvalue_and_niftifile', 'meanvalue' and 'niftifile'
+%       - 'meanvalue' will compute the mean of the relative error for the whole data set
+%       - 'niftifile' will compute the relative error for every element in the
+%          data set and will give you a nifti image
+%       - 'meanvalue_and_niftifile' will do both
 %
 % _OUTPUTS_
 %
-%    mean_percent_diff 
+%    mean_percent_diff
+%         &/or
+%      nifti file
 %  
 % 
  
@@ -34,13 +42,10 @@ mask(mask==0) = NaN; % replace all zeros by NaN
 [h_sim, w_sim, s_sim] = size(sim_b0_map_fname);
 mask_dBz = mask .* 1e6 .* real(sim_b0_map_fname); % verify units of mag_field_sim and justify conversion
 mask_method = mask .* meas_b0_map_fname; % ROI for dual or multi echo
- 
-% sim_voxels = h_sim * w_sim * s_sim;
-% mask_voxels = h_mask * w_mask * s_mask;
-% mask_voxels ~= sim_voxels;
+
  
 % check that mask and data_vol are the same dimensions
- if h_mask ~= h_sim && w_mask ~= w_sim && s_mask ~= s_sim
+if h_mask ~= h_sim && w_mask ~= w_sim && s_mask ~= s_sim
     error(sprintf('\n Mask file dimensions do not match simulated B_0 data file. \n')); 
 end
  
