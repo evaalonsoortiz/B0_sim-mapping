@@ -38,9 +38,9 @@ function [mean_percent_diff] = zubal_err_fct(mask_fname, meas_b0_map_fname, sim_
  
 mask = niftiread(mask_fname);  % load mask 
 mask(mask==0) = NaN; % replace all zeros by NaN
-[h_mask, w_mask ,s_mask] = size(mask);
-[h_sim, w_sim, s_sim] = size(sim_b0_map_fname);
-mask_dBz = mask .* 1e6 .* real(sim_b0_map_fname); % verify units of mag_field_sim and justify conversion
+[h_mask, w_mask ,s_mask] = size(mask); % get the dimension 
+[h_sim, w_sim, s_sim] = size(sim_b0_map_fname); 
+mask_dBz = mask .* 1e6 .* real(sim_b0_map_fname); % 
 mask_method = mask .* meas_b0_map_fname; % ROI for dual or multi echo
  
 % check that mask and data_vol are the same dimensions
