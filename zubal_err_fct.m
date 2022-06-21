@@ -42,7 +42,6 @@ mask(mask==0) = NaN; % replace all zeros by NaN
 [h_sim, w_sim, s_sim] = size(sim_b0_map_fname);
 mask_dBz = mask .* 1e6 .* real(sim_b0_map_fname); % verify units of mag_field_sim and justify conversion
 mask_method = mask .* meas_b0_map_fname; % ROI for dual or multi echo
-
  
 % check that mask and data_vol are the same dimensions
 if h_mask ~= h_sim && w_mask ~= w_sim && s_mask ~= s_sim
@@ -51,9 +50,6 @@ end
  
 % calculating the relative error (3D data set)
 percent_diff = abs((mask_dBz - mask_method)./mask_dBz)*100;  
- 
-% calculating the mean for the whole data set
-%mean_mask = nanmean(rel_error_method, 'all');
  
 switch varargin{1}
     
