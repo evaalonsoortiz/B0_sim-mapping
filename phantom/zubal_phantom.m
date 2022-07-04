@@ -1,7 +1,7 @@
 % Zubal phantom
  
 % generate susceptibility distribution for my modified Zubal phantom
-zubal_sus_dist = Zubal('/Users/mac/Documents/MATLAB/zubal_EAO.nii');
+zubal_sus_dist = Zubal('/Users/mac/Documents/MATLAB/B0_sim-mapping/zubal_EAO.nii');
 % save as nifti
 zubal_sus_dist.save('zubal_EAO_sus.nii');
  
@@ -24,11 +24,11 @@ fprintf('Calculating SNR %u...\n', list_SNR(k)); tic
 % simulate T2* decay for a modified Zubal phantom with a
 % deltaB0 found in an external file
 % multi-echo
-m_zubal_vol = NumericalModel('Zubal','/Users/mac/Documents/MATLAB/zubal_EAO.nii');
+m_zubal_vol = NumericalModel('Zubal','/Users/mac/Documents/MATLAB/B0_sim-mapping/zubal_EAO.nii');
 m_zubal_vol.generate_deltaB0('load_external', 'zubal_EAO_dBz.nii');
 m_zubal_vol.simulate_measurement(4, [0.00126 0.00253 0.00368 0.00488 0.00603 0.00722], list_SNR(k));
 % dual-echo
-d_zubal_vol = NumericalModel('Zubal','/Users/mac/Documents/MATLAB/zubal_EAO.nii');
+d_zubal_vol = NumericalModel('Zubal','/Users/mac/Documents/MATLAB/B0_sim-mapping/zubal_EAO.nii');
 d_zubal_vol.generate_deltaB0('load_external', 'zubal_EAO_dBz.nii');
 d_zubal_vol.simulate_measurement(15, [0.00238 0.00476], list_SNR(k));
 
@@ -67,17 +67,17 @@ save_nii(nii_vol, ['multiechoB0_ppm_zubal' '.nii']);
 ppm_zubal_volume = zubal_dBz.volume .* 1e6;
 
 % mean relative error
-[percent_diff_dual] = percent_err_fct('PFC_mask_2.nii.gz', dual_echo_b0_ppm, ppm_zubal_volume, 'meanvalue_and_niftifile', 'percent_dual_diff');
+[percent_diff_dual] = percent_err_fct('PFC_mask.nii', dual_echo_b0_ppm, ppm_zubal_volume, 'meanvalue_and_niftifile', 'percent_dual_diff');
 mean_rel_error_dual = [mean_rel_error_dual, percent_diff_dual];
  
-[percent_diff_multi] = percent_err_fct('PFC_mask_2.nii.gz', multi_echo_b0_ppm, ppm_zubal_volume, 'meanvalue_and_niftifile', 'percent_multi_diff');
+[percent_diff_multi] = percent_err_fct('PFC_mask.nii', multi_echo_b0_ppm, ppm_zubal_volume, 'meanvalue_and_niftifile', 'percent_multi_diff');
 mean_rel_error_multi = [mean_rel_error_multi, percent_diff_multi];
 
 % mean absolute error
-[abs_diff_dual] = abs_err_fct('Prefrontal_new_mask.nii.gz', dual_echo_b0_ppm, ppm_zubal_volume, 'meanvalue_and_niftifile', 'abs_dual_diff');
+[abs_diff_dual] = abs_err_fct('PFC_mask.nii', dual_echo_b0_ppm, ppm_zubal_volume, 'meanvalue_and_niftifile', 'abs_dual_diff');
 mean_abs_error_dual = [mean_abs_error_dual, abs_diff_dual];
  
-[abs_diff_multi] = abs_err_fct('Prefrontal_new_mask.nii.gz', multi_echo_b0_ppm, ppm_zubal_volume, 'meanvalue_and_niftifile', 'abs_multi_diff');
+[abs_diff_multi] = abs_err_fct('PFC_mask.nii', multi_echo_b0_ppm, ppm_zubal_volume, 'meanvalue_and_niftifile', 'abs_multi_diff');
 mean_abs_error_multi = [mean_abs_error_multi, abs_diff_multi];
  
 toc
