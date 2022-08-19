@@ -1,7 +1,9 @@
 
 %% Spherical phantom
-clearvars;
-% Create a phantom for the spherical model
+% Simulate the field map and apply both dual echo and multi echo methods
+% for different SNRs for a spherical phantom
+
+%clearvars;
 
 %% Parameters
 % Phantom parameters
@@ -13,39 +15,42 @@ radius = 5; % [mm]
 materialIn = 'air'; % ('air', 'silicone_oil' or 'pure_mineral_oil')
 materialOut = 'pure_mineral_oil'; % ('air, 'silicone_oil, or 'pure_mineral_oil')
 
-% Measure parameters
-list_TE = [0.001 0.002 0.003 0.004 0.005 0.006];
-flip_angle = 30;
+% Measure parameters 
+% NB : These measure parameters have been optimized for the Zubal phantom
+% and are not tested
+dual_TE = [0.00238 0.00476]; % echo time in seconds for dual echo method
+multi_TE = [0.008 0.0095 0.011 0.0125 0.014 0.0155]; % echo time in seconds for multi echo method
+FA = 24; % flip angle in degrees
 list_SNR = [25, 50];
 
 % NIFTI parameters
 sus_path = 'spherical_R5mm_airMineralOil_ChiDist_test.nii';
 bdz_path = ['Bdz_' sus_path];
-b0ppm_dual_path = 'dualechoB0_ppm_spherical';   % sans l'extension
-b0ppm_multi_path = 'multiechoB0_ppm_spherical'; % sans l'extension
+dbz_ppm_dual_path = 'dualechoB0_ppm_spherical';   % without the extension
+dbz_ppm_multi_path = 'multiechoB0_ppm_spherical'; % without the extension
 
 % Display parameters
-numCrossSection = 64;
-sectionMultiDual   = cell(1, length(list_SNR) * 2);
+numCrossSection    = 64; % The section that will be displayed
+sectionMultiDual   = cell(1, length(list_SNR) * 2); % 
 sectionDiff        = cell(1, length(list_SNR) * 2);
 
 %% Generate phantom and measures
 % generate a spherical susceptibility distribution 
-spherical_sus_dist = Spherical(view_field , [1 1 1], 5, susceptibilities);
+spherical_sus_dist = Spherical(view_field , [res res res], radius, susceptibilities);
 % save as nifti
 spherical_sus_dist.save(sus_path);
 % Plot
 figure(1);
-imagesc(spherical_sus_dist.volume(:,:,numCrossSection)); colorbar; title('susceptibility distribution')
+imagesc(spherical_sus_dist.volume(:,:,numCrossSection)); colorbar; title(sprintf('susceptibility distribution at z=%u', numCrossSection))
 
 
-% compute deltaB0 for the simulated susceptibility distribution using:
+% compute the field shift for 1T for the susceptibility distribution
 spherical_dBz = FBFest(spherical_sus_dist.volume, spherical_sus_dist.image_res, spherical_sus_dist.matrix);
 % save as nifti
 spherical_dBz.save(bdz_path);
 
 figure(4);
-imagesc(squeeze(1e6.*real(spherical_dBz.volume(:,:,numCrossSection)))); colorbar; title('true deltaB0 map')
+imagesc(squeeze(1e6.*real(spherical_dBz.volume(:,:,numCrossSection)))); colorbar; title('true deltaB0 map at z=%u', numCrossSection))
 
 for i = 1:length(list_SNR)
     fprintf('Calculate SNR %u...\n', list_SNR(i)); tic
@@ -53,7 +58,7 @@ for i = 1:length(list_SNR)
     % deltaB0 found in an external file
     spherical_vol = NumericalModel('Spherical3d', nb_voxels, res, radius, materialIn, materialOut);
     spherical_vol.generate_deltaB0('load_external', bdz_path);
-    spherical_vol.simulate_measurement(flip_angle, list_TE, list_SNR(i));
+    spherical_vol.simulate_measurement(FA, list_TE, list_SNR(i));
 
 
     % get magnitude and phase data
@@ -72,10 +77,10 @@ for i = 1:length(list_SNR)
 
     % save b0 maps
     nii_vol = make_nii(dual_echo_b0_ppm);
-    save_nii(nii_vol, [b0ppm_dual_path sprintf('_SNR%u', list_SNR(i)) '.nii']);
+    save_nii(nii_vol, [dbz_ppm_dual_path sprintf('_SNR%u', list_SNR(i)) '.nii']);
     
     nii_vol = make_nii(multi_echo_b0_ppm);
-    save_nii(nii_vol, [b0ppm_multi_path sprintf('_SNR%u', list_SNR(i)) '.nii']);
+    save_nii(nii_vol, [dbz_ppm_multi_path sprintf('_SNR%u', list_SNR(i)) '.nii']);
     
     %% store results
 
@@ -123,7 +128,7 @@ h2.XLabel.Visible = 'on';
 h2.YLabel.Visible = 'on';
 ylabel(h2, 'yaxis');
 xlabel(h2, 'yaxis');
-sgtitle(h2, sprintf('Spherical Phantom - B0 measured maps (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, flip_angle, list_TE(2) - list_TE(1)));
+sgtitle(h2, sprintf('Spherical Phantom : B0 measured maps (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, FA, list_TE(2) - list_TE(1)));
 c2 = colorbar(h2, 'Position', [0.93 0.168 0.022 0.7]);
 caxis(h2, colorLim);
 
@@ -133,7 +138,7 @@ h3.XLabel.Visible = 'on';
 h3.YLabel.Visible = 'on';
 ylabel(h3, 'yaxis');
 xlabel(h3, 'yaxis');
-sgtitle(h3, sprintf('Spherical Phantom - difference between true dBz and measures maps (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, flip_angle, list_TE(2) - list_TE(1)));
+sgtitle(h3, sprintf('Spherical Phantom : difference between true dBz and measures maps (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, FA, list_TE(2) - list_TE(1)));
 c3 = colorbar(h3, 'Position', [0.93 0.168 0.022 0.7]);
 caxis(h3, colorLim);
 
