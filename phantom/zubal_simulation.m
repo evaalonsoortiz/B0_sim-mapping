@@ -95,11 +95,15 @@ end
 
 %% plot scaled images
 
-figure; imagesc(squeeze(multi_echo_delf(:,:,65))); colorbar; colormap gray; % you'll get the image of the last SNR in list_SNR
-title('multi-echo: B0 (Hz)')
+tech_cell{1} = squeeze(multi_echo_delf(:,:,65)); tech_cell{2} = squeeze(dual_echo_delf(:,:,65));
 
-figure; imagesc(squeeze(dual_echo_delf(:,:,65))); colorbar; colormap gray; % you'll get the image of the last SNR in list_SNR
-title('dual-echo: B0 (Hz)')
+a = +imutils.displayExperiment(1, tech_cell, ["Multi echo" "Dual echo"], {''}, '', 'B0 mapping techniques');
+
+% figure; imagesc(squeeze(multi_echo_delf(:,:,65))); colorbar; colormap gray; % you'll get the image of the last SNR in list_SNR
+% title('multi-echo: B0 (Hz)')
+% 
+% figure; imagesc(squeeze(dual_echo_delf(:,:,65))); colorbar; colormap gray; % you'll get the image of the last SNR in list_SNR
+% title('dual-echo: B0 (Hz)')
 
 %% Plot the error for different SNR
  
