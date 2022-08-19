@@ -28,6 +28,7 @@ sus_path = 'spherical_R5mm_airMineralOil_ChiDist_test.nii';
 bdz_path = ['Bdz_' sus_path];
 dbz_ppm_dual_path = 'dualechoB0_ppm_spherical';   % without the extension
 dbz_ppm_multi_path = 'multiechoB0_ppm_spherical'; % without the extension
+mask_spherical_path = 'mask_spherical';
 
 % Display parameters
 numCrossSection    = 64; % The section that will be displayed
@@ -39,7 +40,7 @@ mean_rel_error_multi = zeros(1, length(list_SNR));
 mean_abs_error_dual = zeros(1, length(list_SNR));
 mean_abs_error_multi = zeros(1, length(list_SNR));
 
-%% Generate phantom
+%% Generate phantom and mask
 % generate a spherical susceptibility distribution 
 spherical_sus_dist = Spherical(view_field , [res res res], radius, susceptibilities);
 % save as nifti
@@ -48,11 +49,18 @@ spherical_sus_dist.save(sus_path);
 figure(1); colormap gray
 imagesc(spherical_sus_dist.volume(:,:,numCrossSection)); colorbar; title(sprintf('susceptibility distribution at z=%u', numCrossSection))
 
+% Calculating a spherical mask
+mask = spherical_mask(radius, view_field, [res, res, res]);
+save_nii(mask, [mask_spherical_path '.nii']);
+
 %% Estimate field variation
 % compute the field shift for 1T for the susceptibility distribution
 spherical_dBz = FBFest(spherical_sus_dist.volume, spherical_sus_dist.image_res, spherical_sus_dist.matrix);
 % save as nifti
 spherical_dBz.save(bdz_path);
+
+% ppm to Hz
+dB0_Hz = ((267.52218744 * 10^6) / (2*pi)) * 3 * 1e-6 .* niftiread('zubal_EAO_dBz.nii'); % [rad*Hz/T][rad-1][T]
 
 figure(4); colormap gray
 imagesc(squeeze(1e6.*real(spherical_dBz.volume(:,:,numCrossSection)))); colorbar; title(sprintf('true deltaB0 map at z=%u', numCrossSection))
@@ -101,66 +109,47 @@ for i = 1:length(list_SNR)
 
     % conversion of the simulated volume to ppm 
     % ppm_zubal_volume = real(zubal_dBz.volume) .* 1e6; % only if you're using ppm
-
+    
+% TODO true dbz map
     % mean relative error
-    [percent_diff_dual] = +imutils.error.percent_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_dual_diff');
+    [percent_diff_dual] = +imutils.error.percent_err_fct([mask_spherical_path '.nii'], dual_echo_delf, dB0_Hz, 'meanvalue', 'percent_dual_diff');
     mean_rel_error_dual(k) = percent_diff_dual;
 
-    [percent_diff_multi] = +imutils.error.percent_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_multi_diff');
+    [percent_diff_multi] = +imutils.error.percent_err_fct([mask_spherical_path '.nii'], multi_echo_delf, dB0_Hz, 'meanvalue', 'percent_multi_diff');
     mean_rel_error_multi(k) = percent_diff_multi;
 
     % mean absolute error
-    [abs_diff_dual] = +imutils.error.abs_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_dual_diff');
+    [abs_diff_dual] = +imutils.error.abs_err_fct([mask_spherical_path '.nii'], dual_echo_delf, dB0_Hz, 'meanvalue', 'abs_dual_diff');
     mean_abs_error_dual(k) = abs_diff_dual;
 
-    [abs_diff_multi] = +imutils.error.abs_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_multi_diff');
+    [abs_diff_multi] = +imutils.error.abs_err_fct([mask_spherical_path '.nii'], multi_echo_delf, dB0_Hz, 'meanvalue', 'abs_multi_diff');
     mean_abs_error_multi(k) = abs_diff_multi;
     toc
 end
 
+%% Plot the error for different SNR
+ 
+figure;
+hold on
+plot(list_SNR, mean_rel_error_dual, 'Color', 'b', 'Marker', 'o', 'LineWidth', 1.5, 'LineStyle','-')
+plot(list_SNR, mean_rel_error_multi, 'Color', 'r', 'Marker', 'o', 'LineWidth', 1.5, 'LineStyle','-')
+legend1 = legend('dual-echo', 'multi-echo');
+set(legend1,'Location','best');
+title({'SNR variation'},{'Mean relative error from 5 to 200'})
+xlabel('SNR')
+ylabel('relative error [%]')
+grid on
+hold off 
 
-
-%% plot
-% plot results
-
-colorLim2 = [min(min(cell2mat(sectionMultiDual))) max(max(cell2mat(sectionMultiDual)))];
-colorLim3 = [min(min(cell2mat(sectionDiff))) max(max(cell2mat(sectionDiff)))];
-
-fig2 = figure(2);
-fig3 = figure(3);
-
-for i=1:2 * length(list_SNR)
-    if (i > length(list_SNR)) 
-        texte = 'dual'; 
-    else
-        texte = 'multi';
-    end
-    spMD{i} = subplot(2, length(list_SNR), i, 'Parent', fig2);
-    imagesc(spMD{i}, sectionMultiDual{i}); title(sprintf('B0 maps %s SNR %u', texte, list_SNR(mod(i - 1, length(list_SNR)) + 1)));
-    caxis(spMD{i}, colorLim);
-
-    spDiff{i} = subplot(2, length(list_SNR), i, 'Parent', fig3);
-    imagesc(spDiff{i}, sectionDiff{i}); title(sprintf('B0 difference %s SNR %u', texte, list_SNR(mod(i - 1, length(list_SNR)) + 1)));
-    caxis(spDiff{i}, colorLim);
-end
-
-h2 = axes(fig2, 'visible', 'off');
-h2.Title.Visible = 'on';
-h2.XLabel.Visible = 'on';
-h2.YLabel.Visible = 'on';
-ylabel(h2, 'yaxis');
-xlabel(h2, 'yaxis');
-sgtitle(h2, sprintf('Spherical Phantom : B0 measured maps (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, FA, list_TE(2) - list_TE(1)));
-c2 = colorbar(h2, 'Position', [0.93 0.168 0.022 0.7]);
-caxis(h2, colorLim);
-
-h3 = axes(fig3, 'visible', 'off');
-h3.Title.Visible = 'on';
-h3.XLabel.Visible = 'on';
-h3.YLabel.Visible = 'on';
-ylabel(h3, 'yaxis');
-xlabel(h3, 'yaxis');
-sgtitle(h3, sprintf('Spherical Phantom : difference between true dBz and measures maps (numVox=%u, FA=%0.1f, SNR variable, deltaTE=%0.4f)', nb_voxels, FA, list_TE(2) - list_TE(1)));
-c3 = colorbar(h3, 'Position', [0.93 0.168 0.022 0.7]);
-caxis(h3, colorLim);
+figure;
+hold on
+plot(list_SNR, mean_abs_error_dual, 'Color', 'b', 'Marker', 'o', 'LineWidth', 1.5, 'LineStyle','-')
+plot(list_SNR, mean_abs_error_multi, 'Color', 'r', 'Marker', 'o', 'LineWidth', 1.5, 'LineStyle','-')
+legend2 = legend('dual-echo', 'multi-echo');
+set(legend2,'Location','best');
+title({'SNR variation'},{'Mean absolute error from 5 to 200'})
+xlabel('SNR')
+ylabel('absolute error [Hz]')
+grid on
+hold off
 
