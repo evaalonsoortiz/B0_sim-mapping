@@ -30,7 +30,7 @@ dbz_ppm_multi_path = 'multiechoB0_ppm_spherical'; % without the extension
 mask_spherical_path = 'mask_spherical';
 
 % Display parameters
-numCrossSection    = 64; % The section that will be displayed
+numCrossSection = view_field(1)/2 + 1; % The section that will be displayed
 
 %% Initialisation
 % initialisation of the error vectors
@@ -48,21 +48,24 @@ spherical_sus_dist.save(sus_path);
 figure(1); colormap gray
 imagesc(spherical_sus_dist.volume(:,:,numCrossSection)); colorbar; title(sprintf('susceptibility distribution at z=%u', numCrossSection))
 
-% Calculating a spherical mask
+% Generate a spherical mask
 mask = spherical_mask(radius, view_field, [res, res, res]);
-save_nii(mask, [mask_spherical_path '.nii']);
+mask_nii = make_nii(mask);
+save_nii(mask_nii, [mask_spherical_path '.nii']);
 
 %% Estimate field variation
 % compute the field shift for 1T for the susceptibility distribution
-% A buffer can be applied (see FBFest.m) here the default one is used
-spherical_dBz = FBFest('spherical', spherical_sus_dist.volume, spherical_sus_dist.image_res, spherical_sus_dist.matrix, spherical_sus_dist.volume(1,1,1));
+% A buffer can be applied (see FBFest.m) here the default one is not used
+% because it takes long time, the optional entry is used here with the
+% result of the default one.
+spherical_dBz = FBFest('spherical', spherical_sus_dist.volume, spherical_sus_dist.image_res, spherical_sus_dist.matrix, spherical_sus_dist.volume(1,1,1), view_field);
 % save as nifti
 spherical_dBz.save(bdz_path);
 
 % ppm to Hz
-dB0_Hz = ((267.52218744 * 10^6) / (2*pi)) * 3 * 1e-6 .* niftiread('zubal_EAO_dBz.nii'); % [rad*Hz/T][rad-1][T]
+dB0_Hz = ((267.52218744 * 10^6) / (2*pi)) * 3 * 1e-6 .* niftiread(bdz_path); % [rad*Hz/T][rad-1][T] (*3 because B0 is 3T)
 
-figure(4); colormap gray
+figure(2); colormap gray
 imagesc(squeeze(1e6.*spherical_dBz.volume(:,:,numCrossSection))); colorbar; title(sprintf('true deltaB0 map at z=%u', numCrossSection))
 
 %% Generate measures
@@ -80,13 +83,13 @@ for i = 1:length(list_SNR)
 
     % get magnitude and phase data [Hz]
     % multi echo
-    m_magn = spherical_vol.getMagnitude;
-    m_phase = spherical_vol.getPhase;
-    m_compl_vol = magn.*exp(1i*phase);    
+    m_magn = m_spherical_vol.getMagnitude;
+    m_phase = m_spherical_vol.getPhase;
+    m_compl_vol = m_magn.*exp(1i*m_phase);    
     % dual echo
-    d_magn = spherical_vol.getMagnitude;
-    d_phase = spherical_vol.getPhase;
-    d_compl_vol = magn.*exp(1i*phase);
+    d_magn = d_spherical_vol.getMagnitude;
+    d_phase = d_spherical_vol.getPhase;
+    d_compl_vol = d_magn.*exp(1i*d_phase);
 
     % calculate the deltaB0 map from the magnitude and phase data
     [multi_echo_delf] = +imutils.b0.multiecho_linfit(m_compl_vol, multi_TE);
@@ -112,17 +115,17 @@ for i = 1:length(list_SNR)
     
     % mean relative error
     [percent_diff_dual] = +imutils.error.percent_err_fct([mask_spherical_path '.nii'], dual_echo_delf, dB0_Hz, 'meanvalue', 'percent_dual_diff');
-    mean_rel_error_dual(k) = percent_diff_dual;
+    mean_rel_error_dual(i) = percent_diff_dual;
 
     [percent_diff_multi] = +imutils.error.percent_err_fct([mask_spherical_path '.nii'], multi_echo_delf, dB0_Hz, 'meanvalue', 'percent_multi_diff');
-    mean_rel_error_multi(k) = percent_diff_multi;
+    mean_rel_error_multi(i) = percent_diff_multi;
 
     % mean absolute error
     [abs_diff_dual] = +imutils.error.abs_err_fct([mask_spherical_path '.nii'], dual_echo_delf, dB0_Hz, 'meanvalue', 'abs_dual_diff');
-    mean_abs_error_dual(k) = abs_diff_dual;
+    mean_abs_error_dual(i) = abs_diff_dual;
 
     [abs_diff_multi] = +imutils.error.abs_err_fct([mask_spherical_path '.nii'], multi_echo_delf, dB0_Hz, 'meanvalue', 'abs_multi_diff');
-    mean_abs_error_multi(k) = abs_diff_multi;
+    mean_abs_error_multi(i) = abs_diff_multi;
     toc
 end
 
