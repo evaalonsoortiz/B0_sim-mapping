@@ -6,7 +6,7 @@
 FA = 24; % flip angle in degrees
 dual_TE = [0.00238 0.00476]; % echo time in seconds
 multi_TE = [0.008 0.0095 0.011 0.0125 0.014 0.0155]; % echo time in seconds
-list_SNR = [5]; % get different SNR
+list_SNR = [20]; % get different SNR
 % initialisation of the error vectors
 mean_rel_error_dual = zeros(1, length(list_SNR));
 mean_rel_error_multi = zeros(1, length(list_SNR));
@@ -34,7 +34,7 @@ fprintf('Calculating SNR %u...\n', list_SNR(k)); tic
 % simulate T2* decay for a modified Zubal phantom with a
 % deltaB0 found in an external file
 % multi-echo
-m_zubal_vol = NumericalModel('Zubal','/Users/mac/Documents/MATLAB/B0_sim-mapping/zubal_EAO.nii');
+m_zubal_vol = NumericalModel('Zubal','zubal_EAO.nii');
 m_zubal_vol.generate_deltaB0('load_external', 'zubal_EAO_dBz.nii');
 m_zubal_vol.simulate_measurement(FA, multi_TE, list_SNR(k));
 % dual-echo
@@ -77,17 +77,17 @@ d_compl_vol = d_magn.*exp(1i*d_phase);
 % ppm_zubal_volume = real(zubal_dBz.volume) .* 1e6; % only if you're using ppm
 
 % mean relative error
-[percent_diff_dual] = +imutils.error.percent_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_dual_diff');
+[percent_diff_dual] = +imutils.error.percent_err_fct('zubal_PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_dual_diff');
 mean_rel_error_dual(k) = percent_diff_dual;
  
-[percent_diff_multi] = +imutils.error.percent_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_multi_diff');
+[percent_diff_multi] = +imutils.error.percent_err_fct('zubal_PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_multi_diff');
 mean_rel_error_multi(k) = percent_diff_multi;
 
 % mean absolute error
-[abs_diff_dual] = +imutils.error.abs_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_dual_diff');
+[abs_diff_dual] = +imutils.error.abs_err_fct('zubal_PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_dual_diff');
 mean_abs_error_dual(k) = abs_diff_dual;
  
-[abs_diff_multi] = +imutils.error.abs_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_multi_diff');
+[abs_diff_multi] = +imutils.error.abs_err_fct('zubal_PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_multi_diff');
 mean_abs_error_multi(k) = abs_diff_multi;
 
 toc
