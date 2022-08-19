@@ -19,7 +19,7 @@ zubal_sus_dist = Zubal('zubal_EAO.nii');
 zubal_sus_dist.save('zubal_EAO_sus.nii');
  
 % compute deltaB0 for the simulated Zubal susceptibility distribution 
-zubal_dBz = FBFest( zubal_sus_dist.volume, zubal_sus_dist.image_res, zubal_sus_dist.matrix, 'Zubal' ); % zubal_dBz units are in Tesla
+zubal_dBz = FBFest('Zubal', zubal_sus_dist.volume, zubal_sus_dist.image_res, zubal_sus_dist.matrix, zubal_sus_dist.volume(1,1,1)); % zubal_dBz units are in Tesla
 % save as nifti
 zubal_dBz.save('zubal_EAO_dBz.nii'); % zubal_dBz units are in ppm
 
