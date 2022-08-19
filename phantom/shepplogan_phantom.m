@@ -1,58 +1,140 @@
-% Shepp-Logan phantom (256 matrix) if 128 change lines 5 and l18
+%% Simulation with Shepp-Logan phantom
+% Simulate the field map and apply both dual echo and multi echo methods
+% for different SNRs.
+
+%% Parameters
+FA = 24; % flip angle in degrees
+dual_TE = [0.00238 0.00476]; % echo time in seconds
+multi_TE = [0.008 0.0095 0.011 0.0125 0.014 0.0155]; % echo time in seconds
+list_SNR = [15 20 30 50 75 100 150 200]; % get different SNR
+nb_voxels = 128; 
+sus = [0.36e-6 -8.842e-6 -4.759e-6 1.842e-6]; % susceptibility
+
+% initialisation of the error vectors
+mean_rel_error_dual = zeros(1, length(list_SNR));
+mean_rel_error_multi = zeros(1, length(list_SNR));
+mean_abs_error_dual = zeros(1, length(list_SNR));
+mean_abs_error_multi = zeros(1, length(list_SNR));
 
 % generate a Shepp-Logan susceptibility distribution 
-shepplogan_sus_dist = SheppLogan( 256, [0.36e-6 -8.842e-6 -4.759e-6 1.842e-6]);
+shepplogan_sus_dist = SheppLogan(nb_voxels, sus);
 %shepplogan_sus_dist = SheppLogan( 256, [a b c d]);
 % save as nifti
 shepplogan_sus_dist.save('Shepp_Logan_ChiDist.nii');
 
-
 % compute deltaB0 for the simulated susceptibility distribution using:
 shepplogan_dBz = FBFest(shepplogan_sus_dist.volume, shepplogan_sus_dist.image_res, shepplogan_sus_dist.matrix);
 % save as nifti
-shepplogan_dBz.save('Bdz_shepplogan_ChiDist.nii');
+shepplogan_dBz.save('dBz_shepplogan_ChiDist.nii');
 
+% ppm to Hz
+dB0_shepploggan_Hz = ((267.52218744 * 10^6) / (2*pi)) * 3 .* shepplogan_dBz.volume;% [rad*Hz/T][rad-1][T]
 
+%% for loop
+for k = 1 : length(list_SNR)
+
+fprintf('Calculating SNR %u...\n', list_SNR(k)); tic
 % simulate T2* decay for a cylinder of air surrounded by mineral oil with a
 % deltaB0 found in an external file
-shepplogan_vol = NumericalModel('Shepp-Logan3d',256);
-shepplogan_vol.generate_deltaB0('load_external', 'Bdz_shepplogan_ChiDist.nii');
-shepplogan_vol.simulate_measurement(15, [0.001 0.002 0.003 0.004 0.005 0.006], 100);
+% multi-echo
+m_shepplogan_vol = NumericalModel('Shepp-Logan3d', nb_voxels);
+m_shepplogan_vol.generate_deltaB0('load_external', 'dBz_shepplogan_ChiDist.nii');
+m_shepplogan_vol.simulate_measurement(FA, multi_TE, list_SNR(k));
+% dual-echo
+d_shepplogan_vol = NumericalModel('Shepp-Logan3d', nb_voxels);
+d_shepplogan_vol.generate_deltaB0('load_external', 'dBz_shepplogan_ChiDist.nii');
+d_shepplogan_vol.simulate_measurement(FA, dual_TE, list_SNR(k));
 
-
-% get magnitude and phase data
-magn = shepplogan_vol.getMagnitude;
-phase = shepplogan_vol.getPhase;
-compl_vol = magn.*exp(1i*phase);
+% get magnitude and phase data [Hz]
+% multi-echo
+m_magn = m_shepplogan_vol.getMagnitude;
+m_phase = m_shepplogan_vol.getPhase;
+m_compl_vol = m_magn.*exp(1i*m_phase);
+% dual-echo
+d_magn = d_shepplogan_vol.getMagnitude;
+d_phase = d_shepplogan_vol.getPhase;
+d_compl_vol = d_magn.*exp(1i*d_phase);
 
 % calculate the deltaB0 map from the magnitude and phase data
-[dual_echo_delf] = +imutils.b0.dual_echo(compl_vol(:,:,:,1:2), [0.001 0.002]);
-[multi_echo_delf] = +imutils.b0.multiecho_linfit(compl_vol, [0.001 0.002 0.003 0.004 0.005 0.006]); 
+[multi_echo_delf] = +imutils.b0.multiecho_linfit(m_compl_vol, multi_TE); 
+[dual_echo_delf] = +imutils.b0.dual_echo(d_compl_vol, dual_TE);
 
-dual_echo_b0_ppm = 1e6*(dual_echo_delf/3)*(1/42.58e6);
-multi_echo_b0_ppm = 1e6*(multi_echo_delf/3)*(1/42.58e6);
+% % conversion to ppm
+% dual_echo_b0_ppm = 1e6*(dual_echo_delf/3)*(1/42.58e6);
+% multi_echo_b0_ppm = 1e6*(multi_echo_delf/3)*(1/42.58e6);
+% 
+% % save b0 maps
+% nii_vol = make_nii(dual_echo_b0_ppm);
+% save_nii(nii_vol, ['dualechoB0_ppm_spheppLogan' '.nii']);
+% 
+% nii_vol = make_nii(multi_echo_b0_ppm);
+% save_nii(nii_vol, ['multiechoB0_ppm_spheppLogan' '.nii']);
 
-% save b0 maps
-nii_vol = make_nii(dual_echo_b0_ppm);
-save_nii(nii_vol, ['dualechoB0_ppm_spheppLogan' '.nii']);
+%% calculate the error
+% 'meanvalue_and_niftifile' or 'meanvalue' or 'niftifile' for
+% percent_err_fct and abs_err_fct
 
-nii_vol = make_nii(multi_echo_b0_ppm);
-save_nii(nii_vol, ['multiechoB0_ppm_spheppLogan' '.nii']);
+% conversion of the simulated volume to ppm 
+% ppm_zubal_volume = real(zubal_dBz.volume) .* 1e6; % only if you're using ppm
 
-% % plot results
-% figure; imagesc(squeeze(multi_echo_b0_ppm(:,:,64))); colorbar
-% title('multi-echo fit: b0 (ppm)')
-% 
-% figure; imagesc(squeeze(dual_echo_b0_ppm(:,:,64))); colorbar; 
-% title('dual-echo fit: b0 (ppm)')
-% 
-% figure; imagesc(squeeze(1e6.*real(shepplogan_dBz.volume(:,:,64)))); colorbar;
-% title('Fourier-based field estimation for the modified Shepp-Logan phantom: b0 (ppm)')
-% 
-% % calc diff between dual-echo and multi-echo
-% diff_dualecho = (dual_echo_b0_ppm-1e6.*real(shepplogan_dBz.volume));
-% figure; imagesc(squeeze(diff_dualecho(:,:,64))); colorbar; title('dual echo - true dBz');
-% 
-% diff_multiecho = (multi_echo_b0_ppm-1e6.*real(shepplogan_dBz.volume));
-% figure; imagesc(squeeze(diff_multiecho(:,:,64))); colorbar; title('multi echo - true dBz');
+% mean relative error
+[percent_diff_dual] = +imutils.error.percent_err_fct('Shepp_Logan_mask.nii', dual_echo_delf, dB0_shepploggan_Hz, 'meanvalue', 'percent_dual_diff');
+mean_rel_error_dual(k) = percent_diff_dual;
+ 
+[percent_diff_multi] = +imutils.error.percent_err_fct('Shepp_Logan_mask.nii', multi_echo_delf, dB0_shepploggan_Hz, 'meanvalue', 'percent_multi_diff');
+mean_rel_error_multi(k) = percent_diff_multi;
+
+% mean absolute error
+[abs_diff_dual] = +imutils.error.abs_err_fct('Shepp_Logan_mask.nii', dual_echo_delf, dB0_shepploggan_Hz, 'meanvalue', 'abs_dual_diff');
+mean_abs_error_dual(k) = abs_diff_dual;
+ 
+[abs_diff_multi] = +imutils.error.abs_err_fct('Shepp_Logan_mask.nii', multi_echo_delf, dB0_shepploggan_Hz, 'meanvalue', 'abs_multi_diff');
+mean_abs_error_multi(k) = abs_diff_multi;
+
+toc
+end
+
+%% Plot the error for different SNR
+ 
+figure;
+hold on
+plot(list_SNR, mean_rel_error_dual, 'Color', 'b', 'Marker', 'o', 'LineWidth', 1.5, 'LineStyle','-')
+plot(list_SNR, mean_rel_error_multi, 'Color', 'r', 'Marker', 'o', 'LineWidth', 1.5, 'LineStyle','-')
+legend1 = legend('dual-echo', 'multi-echo');
+set(legend1,'Location','best');
+title({'SNR variation'},{'Mean relative error from 5 to 200'})
+xlabel('SNR')
+ylabel('relative error [%]')
+grid on
+hold off 
+
+figure;
+hold on
+plot(list_SNR, mean_abs_error_dual, 'Color', 'b', 'Marker', 'o', 'LineWidth', 1.5, 'LineStyle','-')
+plot(list_SNR, mean_abs_error_multi, 'Color', 'r', 'Marker', 'o', 'LineWidth', 1.5, 'LineStyle','-')
+legend2 = legend('dual-echo', 'multi-echo');
+set(legend2,'Location','best');
+title({'SNR variation'},{'Mean absolute error from 5 to 200'})
+xlabel('SNR')
+ylabel('absolute error [Hz]')
+grid on
+hold off
+
+%% plot scaled images
+
+figure; imagesc(squeeze(multi_echo_delf(:,:,64))); colorbar
+title('multi-echo fit: b0 (Hz)')
+
+figure; imagesc(squeeze(dual_echo_delf(:,:,64))); colorbar; 
+title('dual-echo fit: b0 (Hz)')
+
+figure; imagesc(squeeze(1e6.*real(shepplogan_dBz.volume(:,:,64)))); colorbar;
+title('Fourier-based field estimation for the modified Shepp-Logan phantom: b0 (ppm)')
+
+% calc diff between dual-echo and multi-echo
+diff_dualecho = (dual_echo_delf-dB0_shepploggan_Hz);
+figure; imagesc(squeeze(diff_dualecho(:,:,64))); colorbar; title('dual echo - true dBz');
+
+diff_multiecho = (multi_echo_delf-dB0_shepploggan_Hz);
+figure; imagesc(squeeze(diff_multiecho(:,:,64))); colorbar; title('multi echo - true dBz');
 
