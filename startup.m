@@ -7,7 +7,9 @@ addpath 'masks'
 
 % Complete this path if Fourier-based-field-estimation is not directly 
 % in the precedent directory
-addpath '../Fourier-based-field-estimation' 
+pathFourier = '../Fourier-based-field-estimation'; 
+addpath(pathFourier)
+addpath([pathFourier '/utils'])
 % Complete this path to add Zubal_EAO file (previously donloaded) to the
 % path
-addpath 'Zubal_EAO.nii' 
+%addpath 'Zubal_EAO.nii' 
