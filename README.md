@@ -4,9 +4,9 @@
 ### Downloads
 To recreate all the simulations make sure to download: 
 
-* The modified data for the Zubal phantom. The simulation is not using the raw data from [Zubal phantom](https://noodle.med.yale.edu/zubal/info.htm). Make sure to download the right one from ***Eva Alonso Ortiz*** and to use the **startup.m** function to add it to your Matlab path.
+* [Zubal phantom](https://noodle.med.yale.edu/zubal/info.htm). 
 
-* https://github.com/evaalonsoortiz/Fourier-based-field-estimation.git and add it to your MATLAB path using **startup.m**
+* https://github.com/evaalonsoortiz/Fourier-based-field-estimation.git 
 
 ## Step 2
 ### Clone or Fork
