@@ -97,7 +97,7 @@ end
 
 tech_cell{1} = squeeze(multi_echo_delf(:,:,65)); tech_cell{2} = squeeze(dual_echo_delf(:,:,65));
 
-a = +imutils.displayExperiment(1, tech_cell, ["Multi echo" "Dual echo"], {''}, '', 'B0 mapping techniques');
+a = +imutils.displayExperiment(1, tech_cell, ["Multi echo" "Dual echo"], {''}, '', 'B0 mapping techniques', 'Hz');
 
 % figure; imagesc(squeeze(multi_echo_delf(:,:,65))); colorbar; colormap gray; % you'll get the image of the last SNR in list_SNR
 % title('multi-echo: B0 (Hz)')
