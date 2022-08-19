@@ -24,7 +24,7 @@ zubal_dBz = FBFest( zubal_sus_dist.volume, zubal_sus_dist.image_res, zubal_sus_d
 zubal_dBz.save('zubal_EAO_dBz.nii'); % zubal_dBz units are in ppm
 
 % ppm to Hz
-db0_zubal_Hz = ((267.52218744 * 10^6) / (2*pi)) * 3 * 1e-6 .* niftiread('zubal_EAO_dBz.nii'); % [rad*Hz/T][rad-1][T]
+dB0_zubal_Hz = ((267.52218744 * 10^6) / (2*pi)) * 3 * 1e-6 .* niftiread('zubal_EAO_dBz.nii'); % [rad*Hz/T][rad-1][T]
 
 %% for loop
 for k = 1 : length(list_SNR)
