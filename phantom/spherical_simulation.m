@@ -31,69 +31,91 @@ dbz_ppm_multi_path = 'multiechoB0_ppm_spherical'; % without the extension
 
 % Display parameters
 numCrossSection    = 64; % The section that will be displayed
-sectionMultiDual   = cell(1, length(list_SNR) * 2); % 
-sectionDiff        = cell(1, length(list_SNR) * 2);
 
-%% Generate phantom and measures
+%% Initialisation
+% initialisation of the error vectors
+mean_rel_error_dual = zeros(1, length(list_SNR));
+mean_rel_error_multi = zeros(1, length(list_SNR));
+mean_abs_error_dual = zeros(1, length(list_SNR));
+mean_abs_error_multi = zeros(1, length(list_SNR));
+
+%% Generate phantom
 % generate a spherical susceptibility distribution 
 spherical_sus_dist = Spherical(view_field , [res res res], radius, susceptibilities);
 % save as nifti
 spherical_sus_dist.save(sus_path);
 % Plot
-figure(1);
+figure(1); colormap gray
 imagesc(spherical_sus_dist.volume(:,:,numCrossSection)); colorbar; title(sprintf('susceptibility distribution at z=%u', numCrossSection))
 
-
+%% Estimate field variation
 % compute the field shift for 1T for the susceptibility distribution
 spherical_dBz = FBFest(spherical_sus_dist.volume, spherical_sus_dist.image_res, spherical_sus_dist.matrix);
 % save as nifti
 spherical_dBz.save(bdz_path);
 
-figure(4);
-imagesc(squeeze(1e6.*real(spherical_dBz.volume(:,:,numCrossSection)))); colorbar; title('true deltaB0 map at z=%u', numCrossSection))
+figure(4); colormap gray
+imagesc(squeeze(1e6.*real(spherical_dBz.volume(:,:,numCrossSection)))); colorbar; title(sprintf('true deltaB0 map at z=%u', numCrossSection))
 
+%% Generate measures
 for i = 1:length(list_SNR)
     fprintf('Calculate SNR %u...\n', list_SNR(i)); tic
-    % simulate T2* decay for a cylinder of air surrounded by mineral oil with a
-    % deltaB0 found in an external file
-    spherical_vol = NumericalModel('Spherical3d', nb_voxels, res, radius, materialIn, materialOut);
-    spherical_vol.generate_deltaB0('load_external', bdz_path);
-    spherical_vol.simulate_measurement(FA, list_TE, list_SNR(i));
+    % simulate T2* decay with a deltaB0 found in an external file
+    % multi echo
+    m_spherical_vol = NumericalModel('Spherical3d', nb_voxels, res, radius, materialIn, materialOut);
+    m_spherical_vol.generate_deltaB0('load_external', bdz_path);
+    m_spherical_vol.simulate_measurement(FA, multi_TE, list_SNR(i));
+    % dual echo
+    d_spherical_vol = NumericalModel('Spherical3d', nb_voxels, res, radius, materialIn, materialOut);
+    d_spherical_vol.generate_deltaB0('load_external', bdz_path);
+    d_spherical_vol.simulate_measurement(FA, dual_TE, list_SNR(i));
 
-
-    % get magnitude and phase data
-    magn = spherical_vol.getMagnitude;
-    phase = spherical_vol.getPhase;
-    compl_vol = magn.*exp(1i*phase);
+    % get magnitude and phase data [Hz]
+    % multi echo
+    m_magn = spherical_vol.getMagnitude;
+    m_phase = spherical_vol.getPhase;
+    m_compl_vol = magn.*exp(1i*phase);    
+    % dual echo
+    d_magn = spherical_vol.getMagnitude;
+    d_phase = spherical_vol.getPhase;
+    d_compl_vol = magn.*exp(1i*phase);
 
     % calculate the deltaB0 map from the magnitude and phase data
-    [dual_echo_delf] = +imutils.b0.dual_echo(compl_vol(:,:,:,1:2), list_TE(1:2));
-    [multi_echo_delf] = +imutils.b0.multiecho_linfit(compl_vol, list_TE);
-
-    % convert to ppm
-    dual_echo_b0_ppm = 1e6*(dual_echo_delf/3)*(1/42.58e6);
-    multi_echo_b0_ppm = 1e6*(multi_echo_delf/3)*(1/42.58e6);
-
-
-    % save b0 maps
-    nii_vol = make_nii(dual_echo_b0_ppm);
-    save_nii(nii_vol, [dbz_ppm_dual_path sprintf('_SNR%u', list_SNR(i)) '.nii']);
+    [multi_echo_delf] = +imutils.b0.multiecho_linfit(m_compl_vol, multi_TE);
+    [dual_echo_delf] = +imutils.b0.dual_echo(d_compl_vol, dual_TE);
     
-    nii_vol = make_nii(multi_echo_b0_ppm);
-    save_nii(nii_vol, [dbz_ppm_multi_path sprintf('_SNR%u', list_SNR(i)) '.nii']);
+    % % conversion to ppm
+    % dual_echo_b0_ppm = 1e6*(dual_echo_delf/3)*(1/42.58e6); % 3 for 3T, 42.58e6 Hz/T nucleus frequency, 1e6 for ppm
+    % multi_echo_b0_ppm = 1e6*(multi_echo_delf/3)*(1/42.58e6);
+
+    % % save b0 maps
+    % nii_vol = make_nii(dual_echo_b0_ppm);
+    % save_nii(nii_vol, [dbz_ppm_dual_path sprintf('_SNR%u', list_SNR(i)) '.nii']);
     
-    %% store results
+    % nii_vol = make_nii(multi_echo_b0_ppm);
+    % save_nii(nii_vol, [dbz_ppm_multi_path sprintf('_SNR%u', list_SNR(i)) '.nii']);
+ 
+    %% calculate the error
+    % 'meanvalue_and_niftifile' or 'meanvalue' or 'niftifile' for
+    % percent_err_fct and abs_err_fct
 
-    sectionMultiDual{i} = squeeze(multi_echo_b0_ppm(:,:,numCrossSection));
-    sectionMultiDual{i + length(list_SNR)} = squeeze(dual_echo_b0_ppm(:,:,numCrossSection));
+    % conversion of the simulated volume to ppm 
+    % ppm_zubal_volume = real(zubal_dBz.volume) .* 1e6; % only if you're using ppm
 
-    diff_multiecho = (multi_echo_b0_ppm-1e6.*real(spherical_dBz.volume));
-    sectionDiff{i}  = squeeze(diff_multiecho(:,:,numCrossSection));
-    diff_dualecho = (dual_echo_b0_ppm-1e6.*real(spherical_dBz.volume));
-    sectionDiff{i + length(list_SNR)} = squeeze(diff_dualecho(:,:,numCrossSection));
+    % mean relative error
+    [percent_diff_dual] = +imutils.error.percent_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_dual_diff');
+    mean_rel_error_dual(k) = percent_diff_dual;
 
+    [percent_diff_multi] = +imutils.error.percent_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_multi_diff');
+    mean_rel_error_multi(k) = percent_diff_multi;
 
-toc
+    % mean absolute error
+    [abs_diff_dual] = +imutils.error.abs_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_dual_diff');
+    mean_abs_error_dual(k) = abs_diff_dual;
+
+    [abs_diff_multi] = +imutils.error.abs_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_multi_diff');
+    mean_abs_error_multi(k) = abs_diff_multi;
+    toc
 end
 
 
