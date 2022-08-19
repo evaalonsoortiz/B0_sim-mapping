@@ -55,7 +55,8 @@ save_nii(mask, [mask_spherical_path '.nii']);
 
 %% Estimate field variation
 % compute the field shift for 1T for the susceptibility distribution
-spherical_dBz = FBFest(spherical_sus_dist.volume, spherical_sus_dist.image_res, spherical_sus_dist.matrix);
+% A buffer can be applied (see FBFest.m) here the default one is used
+spherical_dBz = FBFest('spherical', spherical_sus_dist.volume, spherical_sus_dist.image_res, spherical_sus_dist.matrix, spherical_sus_dist.volume(1,1,1));
 % save as nifti
 spherical_dBz.save(bdz_path);
 
@@ -63,7 +64,7 @@ spherical_dBz.save(bdz_path);
 dB0_Hz = ((267.52218744 * 10^6) / (2*pi)) * 3 * 1e-6 .* niftiread('zubal_EAO_dBz.nii'); % [rad*Hz/T][rad-1][T]
 
 figure(4); colormap gray
-imagesc(squeeze(1e6.*real(spherical_dBz.volume(:,:,numCrossSection)))); colorbar; title(sprintf('true deltaB0 map at z=%u', numCrossSection))
+imagesc(squeeze(1e6.*spherical_dBz.volume(:,:,numCrossSection))); colorbar; title(sprintf('true deltaB0 map at z=%u', numCrossSection))
 
 %% Generate measures
 for i = 1:length(list_SNR)
@@ -110,7 +111,6 @@ for i = 1:length(list_SNR)
     % conversion of the simulated volume to ppm 
     % ppm_zubal_volume = real(zubal_dBz.volume) .* 1e6; % only if you're using ppm
     
-% TODO true dbz map
     % mean relative error
     [percent_diff_dual] = +imutils.error.percent_err_fct([mask_spherical_path '.nii'], dual_echo_delf, dB0_Hz, 'meanvalue', 'percent_dual_diff');
     mean_rel_error_dual(k) = percent_diff_dual;
