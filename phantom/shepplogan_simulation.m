@@ -18,12 +18,12 @@ mean_abs_error_multi = zeros(1, length(list_SNR));
 
 % generate a Shepp-Logan susceptibility distribution 
 shepplogan_sus_dist = SheppLogan(nb_voxels, sus);
-%shepplogan_sus_dist = SheppLogan( 256, [a b c d]);
 % save as nifti
 shepplogan_sus_dist.save('Shepp_Logan_ChiDist.nii');
 
-% compute deltaB0 for the simulated susceptibility distribution using:
-shepplogan_dBz = FBFest(shepplogan_sus_dist.volume, shepplogan_sus_dist.image_res, shepplogan_sus_dist.matrix);
+% compute the field shift for 1T for the susceptibility distribution
+% A buffer can be applied (see FBFest.m) here the default one is used
+shepplogan_dBz = FBFest('Shepp-Logan', shepplogan_sus_dist.volume, shepplogan_sus_dist.image_res, shepplogan_sus_dist.matrix, shepplogan_sus_dist.volume(1,1,1));
 % save as nifti
 shepplogan_dBz.save('dBz_shepplogan_ChiDist.nii');
 
