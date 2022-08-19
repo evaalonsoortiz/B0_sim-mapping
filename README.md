@@ -4,7 +4,7 @@
 ### Downloads
 To recreate all the simulations make sure to download: 
 
-* [Zubal phantom](https://noodle.med.yale.edu/zubal/info.htm). 
+* [Zubal phantom](https://noodle.med.yale.edu/zubal/info.htm) 
 
 * https://github.com/evaalonsoortiz/Fourier-based-field-estimation.git 
 
@@ -20,5 +20,9 @@ Choose one of the function below to simulate a field map:
 * shepplogan_simulation.m
 * spherical_simulaiton.m
 * cylindrical_simulaiton.m
+
+### Example
+If you're using zubal_simulation.m with a SNR of 50, the final result should be something like this: 
+
 
 
