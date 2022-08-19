@@ -1,4 +1,3 @@
-
 %% Spherical phantom
 % Simulate the field map and apply both dual echo and multi echo methods
 % for different SNRs for a spherical phantom

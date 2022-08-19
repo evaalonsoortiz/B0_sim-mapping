@@ -1,4 +1,10 @@
 %% Cylindrical phantom
+% Simulate the field map and apply both dual echo and multi echo methods
+% for different SNRs for a spherical phantom
+
+%clearvars;
+
+%% Parameters
 
 % generate a cylindrical susceptibility distribution at 90 degrees 
 cylindrical_sus_dist = Cylindrical( [128 128 128], [1 1 1], 5, pi/4, [0.36e-6 -8.842e-6]);
