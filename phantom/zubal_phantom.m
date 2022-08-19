@@ -70,7 +70,7 @@ d_compl_vol = d_magn.*exp(1i*d_phase);
 % ppm_zubal_volume = real(zubal_dBz.volume) .* 1e6;
 
 % mean relative error
-[percent_diff_dual] = percent_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_dual_diff');
+[percent_diff_dual] = +imutils.error.percent_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_dual_diff');
 mean_rel_error_dual = [mean_rel_error_dual, percent_diff_dual];
  
 [percent_diff_multi] = percent_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_multi_diff');
