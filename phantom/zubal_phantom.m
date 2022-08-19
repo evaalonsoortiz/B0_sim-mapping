@@ -1,7 +1,12 @@
-% Zubal phantom
+%% Simulation with Zubal phantom
+% Simulate the field map and apply both dual echo and multi echo methods
+% for different SNRs.
+
+%% Parameters
+
  
 % generate susceptibility distribution for my modified Zubal phantom
-zubal_sus_dist = Zubal('/Users/mac/Documents/MATLAB/B0_sim-mapping/zubal_EAO.nii');
+zubal_sus_dist = Zubal('zubal_EAO.nii');
 % save as nifti
 zubal_sus_dist.save('zubal_EAO_sus.nii');
  
@@ -31,7 +36,7 @@ m_zubal_vol = NumericalModel('Zubal','/Users/mac/Documents/MATLAB/B0_sim-mapping
 m_zubal_vol.generate_deltaB0('load_external', 'zubal_EAO_dBz.nii');
 m_zubal_vol.simulate_measurement(24, [0.008 0.0095 0.011 0.0125 0.014 0.0155], list_SNR(k));
 % dual-echo
-d_zubal_vol = NumericalModel('Zubal','/Users/mac/Documents/MATLAB/B0_sim-mapping/zubal_EAO.nii');
+d_zubal_vol = NumericalModel('Zubal','zubal_EAO.nii');
 d_zubal_vol.generate_deltaB0('load_external', 'zubal_EAO_dBz.nii');
 d_zubal_vol.simulate_measurement(24, [0.00238 0.00476], list_SNR(k));
 
@@ -73,14 +78,14 @@ d_compl_vol = d_magn.*exp(1i*d_phase);
 [percent_diff_dual] = +imutils.error.percent_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_dual_diff');
 mean_rel_error_dual = [mean_rel_error_dual, percent_diff_dual];
  
-[percent_diff_multi] = percent_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_multi_diff');
+[percent_diff_multi] = +imutils.error.percent_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'percent_multi_diff');
 mean_rel_error_multi = [mean_rel_error_multi, percent_diff_multi];
 
 % mean absolute error
-[abs_diff_dual] = abs_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_dual_diff');
+[abs_diff_dual] = +imutils.error.abs_err_fct('PFC_mask.nii', dual_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_dual_diff');
 mean_abs_error_dual = [mean_abs_error_dual, abs_diff_dual];
  
-[abs_diff_multi] = abs_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_multi_diff');
+[abs_diff_multi] = +imutils.error.abs_err_fct('PFC_mask.nii', multi_echo_delf, dB0_zubal_Hz, 'meanvalue', 'abs_multi_diff');
 mean_abs_error_multi = [mean_abs_error_multi, abs_diff_multi];
 
 toc
