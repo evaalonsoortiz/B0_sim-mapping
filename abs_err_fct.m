@@ -37,7 +37,6 @@ function [mean_abs_diff] = abs_err_fct(mask_fname, meas_b0_map_fname, sim_b0_map
 % 
  
 mask = niftiread(mask_fname);  % load mask 
-mask(mask==0) = NaN; % replace all zeros by NaN
 [h_mask, w_mask ,s_mask] = size(mask); % get the dimension 
 [h_sim, w_sim, s_sim] = size(sim_b0_map_fname); 
 mask_dBz = mask .* real(sim_b0_map_fname); %  
@@ -55,7 +54,7 @@ switch varargin{1}
     
     case 'meanvalue'
         
-        mean_abs_diff = nanmean(abs_diff, 'all');
+        mean_abs_diff = mean(nonzeros(abs_diff));
  
     case 'niftifile'
         
@@ -66,7 +65,7 @@ switch varargin{1}
         
         nii_vol = make_nii(abs_diff);
         save_nii(nii_vol, [varargin{2} '.nii']);
-        mean_abs_diff = nanmean(abs_diff, 'all');
+        mean_abs_diff = mean(nonzeros(abs_diff));
  
     otherwise
         
