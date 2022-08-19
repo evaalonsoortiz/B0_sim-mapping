@@ -1,10 +1,10 @@
-function success = displayExperiment(nlines, dataCells, listVar, listTitles, nameVar, globalTitle)
+function success = displayExperiment(nlines, dataCells, listVar, listTitles, nameVar, globalTitle, units)
 % display experiment displays 2D matrixes in subplots in a window with the
 % same colorbar.
 %
 % _SYNTAX_
 % 
-% displayExperiment(int, cell array, [int, int, ...], {'xxx', 'xxx', ...}, 'xxx', 'xxx xxx xxx')
+% displayExperiment(int, cell array, [int, int, ...], {'xxx', 'xxx', ...}, 'xxx', 'xxx xxx xxx', 'xxx')
 % 
 %
 % _DESCRIPTION_
@@ -30,15 +30,17 @@ function success = displayExperiment(nlines, dataCells, listVar, listTitles, nam
 %      ncolumns.
 %    nameVar
 %      The name for the modified variable (class 'char').
-%    nameVar
+%    globalTitle
 %      The global title (class 'char').
+%    units
+%      The units of the field map (class 'char').
 %
 % _OUTPUTS_
 %    success
 %      1 if the function has succefully succeed
 %
 %_EXAMPLE_
-% s = +imutils.displayExperiment(2, sectionMultiDual, list_SNR, {'multi_echo', 'dual_echo'}, 'SNR', 'Comparing dual and multi echo methods for different SNR');
+% s = +imutils.displayExperiment(2, sectionMultiDual, list_SNR, {'multi_echo', 'dual_echo'}, 'SNR', 'Comparing dual and multi echo methods for different SNR', 'Hz');
 %
 % Code created for https://github.com/evaalonsoortiz/B0_sim-mapping/
 
@@ -62,7 +64,7 @@ h.YLabel.Visible = 'off';
 
 c = colorbar(h, 'Position', [0.93 0.168 0.022 0.7]);
 colorTitleHandle = get(c,'Title');
-titleString = 'rad';
+titleString = units;
 set(colorTitleHandle ,'String',titleString);
 
 caxis(h, colorLim);
