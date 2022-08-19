@@ -6,7 +6,7 @@
 FA = 24; % flip angle in degrees
 dual_TE = [0.00238 0.00476]; % echo time in seconds
 multi_TE = [0.008 0.0095 0.011 0.0125 0.014 0.0155]; % echo time in seconds
-list_SNR = [5 10 15 20 30 50 75 100 150 200]; % get different SNR
+list_SNR = [5]; % get different SNR
 % initialisation of the error vectors
 mean_rel_error_dual = zeros(1, length(list_SNR));
 mean_rel_error_multi = zeros(1, length(list_SNR));

@@ -20,7 +20,7 @@ materialOut = 'pure_mineral_oil'; % ('air, 'silicone_oil, or 'pure_mineral_oil')
 dual_TE = [0.00238 0.00476]; % echo time in seconds for dual echo method
 multi_TE = [0.008 0.0095 0.011 0.0125 0.014 0.0155]; % echo time in seconds for multi echo method
 FA = 24; % flip angle in degrees
-list_SNR = [25, 50];
+list_SNR = [25];
 
 % NIFTI parameters
 sus_path = 'spherical_R5mm_airMineralOil_ChiDist_test.nii';
@@ -114,18 +114,22 @@ for i = 1:length(list_SNR)
     % ppm_zubal_volume = real(zubal_dBz.volume) .* 1e6; % only if you're using ppm
     
     % mean relative error
-    [percent_diff_dual] = +imutils.error.percent_err_fct([mask_spherical_path '.nii'], dual_echo_delf, dB0_Hz, 'meanvalue', 'percent_dual_diff');
-    mean_rel_error_dual(i) = percent_diff_dual;
-
-    [percent_diff_multi] = +imutils.error.percent_err_fct([mask_spherical_path '.nii'], multi_echo_delf, dB0_Hz, 'meanvalue', 'percent_multi_diff');
-    mean_rel_error_multi(i) = percent_diff_multi;
-
-    % mean absolute error
-    [abs_diff_dual] = +imutils.error.abs_err_fct([mask_spherical_path '.nii'], dual_echo_delf, dB0_Hz, 'meanvalue', 'abs_dual_diff');
-    mean_abs_error_dual(i) = abs_diff_dual;
-
-    [abs_diff_multi] = +imutils.error.abs_err_fct([mask_spherical_path '.nii'], multi_echo_delf, dB0_Hz, 'meanvalue', 'abs_multi_diff');
-    mean_abs_error_multi(i) = abs_diff_multi;
+%     [percent_diff_dual] = +imutils.error.percent_err_fct([mask_spherical_path '.nii'], dual_echo_delf, dB0_Hz, 'meanvalue', 'percent_dual_diff');
+%     mean_rel_error_dual(i) = percent_diff_dual;
+% 
+%     [percent_diff_multi] = +imutils.error.percent_err_fct([mask_spherical_path '.nii'], multi_echo_delf, dB0_Hz, 'meanvalue', 'percent_multi_diff');
+%     mean_rel_error_multi(i) = percent_diff_multi;
+% 
+%     % mean absolute error
+%     [abs_diff_dual] = +imutils.error.abs_err_fct([mask_spherical_path '.nii'], dual_echo_delf, dB0_Hz, 'meanvalue', 'abs_dual_diff');
+%     mean_abs_error_dual(i) = abs_diff_dual;
+% 
+%     [abs_diff_multi] = +imutils.error.abs_err_fct([mask_spherical_path '.nii'], multi_echo_delf, dB0_Hz, 'meanvalue', 'abs_multi_diff');
+%     mean_abs_error_multi(i) = abs_diff_multi;
+        [abs_diff_dual] = mean(nonzeros(abs(mask .* (dual_echo_delf - dB0_Hz))), 'all');
+        [abs_diff_multi] = mean(nonzeros(abs(mask .* (multi_echo_delf - dB0_Hz))), 'all');
+         mean_abs_error_dual(i) = abs_diff_dual;
+         mean_abs_error_multi(i) = abs_diff_multi;
     toc
 end
 

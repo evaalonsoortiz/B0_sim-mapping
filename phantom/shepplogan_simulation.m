@@ -6,7 +6,7 @@
 FA = 24; % flip angle in degrees
 dual_TE = [0.00238 0.00476]; % echo time in seconds
 multi_TE = [0.008 0.0095 0.011 0.0125 0.014 0.0155]; % echo time in seconds
-list_SNR = [15 20 30 50 75 100 150 200]; % get different SNR
+list_SNR = [15]; % get different SNR
 nb_voxels = 128; 
 sus = [0.36e-6 -8.842e-6 -4.759e-6 1.842e-6]; % susceptibility
 
