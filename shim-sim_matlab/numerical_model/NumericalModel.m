@@ -638,7 +638,7 @@ classdef NumericalModel < handle
             % volume: measurement volume of signals
             % SNR: Signal-to-noise ratio
             
-            noiseSTD = max(volume(:))/SNR;
+            noiseSTD = mean(nonzeros(volume(:)))/SNR;
             noisyReal =      real(volume) + randn(size(volume)) * noiseSTD;
             noisyImaginary = imag(volume) + randn(size(volume)) * noiseSTD;
 
