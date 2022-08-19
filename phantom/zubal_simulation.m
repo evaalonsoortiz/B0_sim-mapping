@@ -93,6 +93,14 @@ mean_abs_error_multi(k) = abs_diff_multi;
 toc
 end
 
+%% plot scaled images
+
+figure; imagesc(squeeze(multi_echo_delf(:,:,65))); colorbar; colormap gray; % you'll get the image of the last SNR in list_SNR
+title('multi-echo: B0 (Hz)')
+
+figure; imagesc(squeeze(dual_echo_delf(:,:,65))); colorbar; colormap gray; % you'll get the image of the last SNR in list_SNR
+title('dual-echo: B0 (Hz)')
+
 %% Plot the error for different SNR
  
 figure;
