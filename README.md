@@ -34,7 +34,7 @@ If you're using zubal_simulation.m with a SNR of 50, the final result should be 
 
 <img width="488" alt="Capture d’écran, le 2022-08-19 à 17 36 28" src="https://user-images.githubusercontent.com/85508922/185710621-d09ce759-de39-4469-86e7-b8c0aa98a95c.png">
 
-You can have multiple SNR, example: *list_SNR = [10 15 20 30 50];*, the final scaled image will be the last SNR of your list and the graph for the error should look like this:
+You can have also have multiple SNR, example: *list_SNR = [10 15 20 30 50];*, the final scaled image will be the last SNR of your list and the graph for the error should look like this:
 
 <img width="495" alt="Capture d’écran, le 2022-08-19 à 18 03 55" src="https://user-images.githubusercontent.com/85508922/185713163-61550fd7-5d2f-431f-8dd3-43b23fca6875.png">
 
