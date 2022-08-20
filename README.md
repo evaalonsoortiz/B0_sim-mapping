@@ -24,11 +24,11 @@ Choose one of the function below to simulate a field map:
 ### Example
 If you're using zubal_simulation.m with a SNR of 50, the final result should be something like this: 
 
-**The scaled image of the field mapping techniques**
+**Scaled images of the field mapping techniques**
 
 <img width="757" alt="Capture d’écran, le 2022-08-19 à 18 06 23" src="https://user-images.githubusercontent.com/85508922/185713382-e86396db-bf29-4943-89d8-67c11a112d6f.png">
 
-**The graphs for the absolute and percent error**
+**Graphs for the absolute and percent error**
 
 <img width="488" alt="Capture d’écran, le 2022-08-19 à 17 38 30" src="https://user-images.githubusercontent.com/85508922/185710752-dd302a9e-2396-487a-ba23-0b3a0cab3f00.png">
 
