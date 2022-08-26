@@ -22,7 +22,7 @@ Choose one of the function below to simulate a field map:
 * cylindrical_simulaiton.m
 
 ### Example
-If you're using zubal_simulation.m with a SNR of 50, the final result should be something like this: 
+If you're using zubal_simulation.m with the following parameters: SNR of 50, dual echo TE's [0.00238 0.00476] [s], multi eccho TE's [0.008 0.0095 0.011 0.0125 0.014 0.0155] [s], FA of 24° and the zubal_PFC_mask.nii, the final result should be something like this: 
 
 **Scaled images of the field mapping techniques**
 
