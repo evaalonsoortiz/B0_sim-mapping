@@ -44,20 +44,20 @@ delf = zeros(size(phData,1),size(phData,2),size(phData,3));
 sigma = bkgrnd_noise(magData);
 mask = threshold_masking(magData, sigma);
 
-%-------------------------------------------------------------------------%
-% temporally unwrap phase across echoes
-%-------------------------------------------------------------------------%
-delPhaseNet(:,:,:,1) = phData(:,:,:,1);
-
-for n=2:numTE
-
-    volTmp0 = complVol(:,:,:,n-1);
-    volTmp1 = complVol(:,:,:,n);                       
-
-    delPhase = angle( volTmp1.*conj(volTmp0) );
-    delPhaseNet(:,:,:,n) = delPhaseNet(:,:,:,n-1) + delPhase;
-
-end
+% %-------------------------------------------------------------------------%
+% % temporally unwrap phase across echoes
+% %-------------------------------------------------------------------------%
+% delPhaseNet(:,:,:,1) = phData(:,:,:,1);
+% 
+% for n=2:numTE
+% 
+%     volTmp0 = complVol(:,:,:,n-1);
+%     volTmp1 = complVol(:,:,:,n);                       
+% 
+%     delPhase = angle( volTmp1.*conj(volTmp0) );
+%     delPhaseNet(:,:,:,n) = delPhaseNet(:,:,:,n-1) + delPhase;
+% 
+% end
     
 
 %-------------------------------------------------------------------------%
