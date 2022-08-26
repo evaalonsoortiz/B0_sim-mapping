@@ -71,7 +71,8 @@ for i=1:size(phData,1)
                 delf(i,j,k) = 0;
             else
                 A =  [delt(1:numTE)',ones(size(delt(1:numTE)'))];
-                B = squeeze(delPhaseNet(i,j,k,1:numTE));
+%                 B = squeeze(delPhaseNet(i,j,k,1:numTE));
+                B = squeeze(phData(i,j,k,1:numTE));
                 w = squeeze(magData(i,j,k,1:numTE)).^2;
                 [fit_para_tmp] = lscov(A,B,w);
                 delf(i,j,k) = fit_para_tmp(1)/(2*pi);
